@@ -1,0 +1,16 @@
+syntax = "proto3";
+package greeting;
+option java_multiple_files = true;
+option java_package = "com.example.greeting";
+
+service Greeter {
+    rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloReply {
+    string reply = 1;
+}
