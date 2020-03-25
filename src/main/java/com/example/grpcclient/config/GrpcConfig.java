@@ -24,19 +24,32 @@ public class GrpcConfig {
     @Value("${grpc.out.custom.key}")
     private String keyPath;
 
-    @Value("${grpc.out.custom.hostname}")
+    @Value("${grpc.out.custom.hostname:localhost}")
     private String hostname;
 
-    @Value("${grpc.out.custom.port}")
+    @Value("${grpc.out.custom.port:9393}")
     private int port;
 
-    public ApplicationProtocolConfig getApplicationProtocolConfig()
+    @Bean
+    public GreeterGrpc.GreeterBlockingStub clientStub() {
+        return GreeterGrpc.newBlockingStub(getChannel());
+    }
+
+    public ManagedChannel getChannel()
     {
-        return new ApplicationProtocolConfig(
-                ApplicationProtocolConfig.Protocol.ALPN,
-                ApplicationProtocolConfig.SelectorFailureBehavior.CHOOSE_MY_LAST_PROTOCOL,
-                ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
-                ApplicationProtocolNames.HTTP_2);
+        if(port == 0){
+            return NettyChannelBuilder.forTarget(hostname)
+                    .sslContext(getSslContext())
+                    .negotiationType(NegotiationType.TLS)
+                    .build();
+        }
+        else
+        {
+            return NettyChannelBuilder.forAddress(hostname, port)
+                    .sslContext(getSslContext())
+                    .negotiationType(NegotiationType.TLS)
+                    .build();
+        }
     }
 
     public SslContext getSslContext()
@@ -58,16 +71,12 @@ public class GrpcConfig {
         }
     }
 
-    public ManagedChannel getChannel()
+    public ApplicationProtocolConfig getApplicationProtocolConfig()
     {
-        return NettyChannelBuilder.forTarget(hostname)
-                .sslContext(getSslContext())
-                .negotiationType(NegotiationType.TLS)
-                .build();
-    }
-
-    @Bean
-    public GreeterGrpc.GreeterBlockingStub clientStub() {
-        return GreeterGrpc.newBlockingStub(getChannel());
+        return new ApplicationProtocolConfig(
+                ApplicationProtocolConfig.Protocol.ALPN,
+                ApplicationProtocolConfig.SelectorFailureBehavior.CHOOSE_MY_LAST_PROTOCOL,
+                ApplicationProtocolConfig.SelectedListenerFailureBehavior.FATAL_ALERT,
+                ApplicationProtocolNames.HTTP_2);
     }
 }

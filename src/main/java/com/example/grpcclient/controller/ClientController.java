@@ -20,6 +20,13 @@ public class ClientController {
 
     private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
+    @RequestMapping("/ping")
+    @ResponseBody
+    public ResponseEntity returnData()
+    {
+        return new ResponseEntity("Client is running!", null, HttpStatus.ACCEPTED);
+    }
+
     @RequestMapping("/greeting/{name}")
     @ResponseBody
     public ResponseEntity giveMeAName(@PathVariable("name") String name)

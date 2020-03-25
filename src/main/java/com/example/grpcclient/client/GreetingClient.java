@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 @Component
 public class GreetingClient {
 
@@ -17,7 +19,25 @@ public class GreetingClient {
     @Autowired
     private GreeterGrpc.GreeterBlockingStub clientStub;
 
-    public String sendMessage(final String name){
+    @PostConstruct
+    public void initConnection()
+    {
+        try
+        {
+            this.clientStub.sayHello(HelloRequest.newBuilder()
+                            .setName("0")
+                            .build());
+            logger.info("Connection initialised.");
+        }
+        catch(Exception e)
+        {
+            logger.info("Failed to initialise connection.");
+            e.printStackTrace();
+        }
+    }
+
+    public String sendMessage(final String name)
+    {
         final HelloReply response = this.clientStub
                 .sayHello(HelloRequest.newBuilder()
                 .setName(name)
@@ -27,6 +47,4 @@ public class GreetingClient {
 
         return response.getReply();
     }
-
-
 }
